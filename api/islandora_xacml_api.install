@@ -24,12 +24,14 @@ function islandora_xacml_api_update_7100(&$sandbox) {
   drupal_load('module', 'islandora');
   $tuque = islandora_get_tuque_connection();
   $pred = 'inheritXacmlFrom';
+  $rels_uri = ISLANDORA_RELS_EXT_URI;
 
   $query = <<<EOQ
+PREFIX islandora: <$rels_uri>
 SELECT DISTINCT ?object
 FROM <#ri>
 WHERE {
-  ?object <fedora-rels-ext:$pred> ?parent
+  ?object islandora:$pred ?parent
   FILTER (IsLITERAL(?parent))
 }
 
