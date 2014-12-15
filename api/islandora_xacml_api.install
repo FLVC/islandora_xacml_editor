@@ -67,26 +67,34 @@ EOQ;
   $result = array_pop($sandbox['result_stash']);
   $updating_pid = $result['object']['value'];
   $object_to_update = islandora_object_load($updating_pid);
-  $rels = $object_to_update->relationships;
-  $xacml_parents = array_merge($rels->get(ISLANDORA_RELS_EXT_URI, $pred), $rels->get(FEDORA_RELS_EXT_URI, $pred));
-  $xacml_parent = reset($xacml_parents);
-  if ($xacml_parent) {
-    $rels->autoCommit = FALSE;
-    $rels->remove(FEDORA_RELS_EXT_URI, $pred);
-    $rels->remove(ISLANDORA_RELS_EXT_URI, $pred);
-    $rels->add(ISLANDORA_RELS_EXT_URI, $pred, $xacml_parent['object']['value'], RELS_TYPE_URI);
-    $rels->commitRelationships();
-    watchdog('islandora_xacml_api', 'Converted deprecated "@pred" literal to currently-supported URI for @pid.', array(
-      '@pred' => $pred,
-      '@pid' => $updating_pid,
-    ));
+  if ($object_to_update) {
+    $rels = $object_to_update->relationships;
+    $xacml_parents = array_merge($rels->get(ISLANDORA_RELS_EXT_URI, $pred), $rels->get(FEDORA_RELS_EXT_URI, $pred));
+    $xacml_parent = reset($xacml_parents);
+    if ($xacml_parent) {
+      $rels->autoCommit = FALSE;
+      $rels->remove(FEDORA_RELS_EXT_URI, $pred);
+      $rels->remove(ISLANDORA_RELS_EXT_URI, $pred);
+      $rels->add(ISLANDORA_RELS_EXT_URI, $pred, $xacml_parent['object']['value'], RELS_TYPE_URI);
+      $rels->commitRelationships();
+      watchdog('islandora_xacml_api', 'Converted deprecated "@pred" literal to currently-supported URI for @pid.', array(
+        '@pred' => $pred,
+        '@pid' => $updating_pid,
+      ));
+    }
+    else {
+      // Should never be able to get here really... Somebody else is running
+      // this at the same time?
+      watchdog('islandora_xacml_api', 'Selected @pid to update "@pred" literal, but was missing relationships when we checked!?', array(
+        '@pred' => $pred,
+        '@pid' => $object_to_update->id,
+      ));
+    }
   }
   else {
-    // Should never be able to get here really... Somebody else is running
-    // this at the same time?
-    watchdog('islandora_xacml_api', 'Selected @pid to update "@pred" literal, but was missing relationships when we checked!?', array(
+    watchdog('islandora_xacml_api', 'Selected @pid to update "@pred" literal, but object not found!?', array(
       '@pred' => $pred,
-      '@pid' => $object_to_update->id,
+      '@pid' => $updating_pid,
     ));
   }
 
