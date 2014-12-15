@@ -22,7 +22,15 @@ function islandora_xacml_api_uninstall() {
  */
 function islandora_xacml_api_update_7100(&$sandbox) {
   drupal_load('module', 'islandora');
-  $tuque = islandora_get_tuque_connection();
+
+  // XXX: We want to force things to be done as admin, and running the update
+  // through drush seems to break things, despite specifying user 1... Let's
+  // force things.
+  drupal_static_reset('islandora_get_tuque_connection');
+  $user = user_load(1);
+  $tuque = islandora_get_tuque_connection($user);
+
+  //$tuque = islandora_get_tuque_connection();
   $pred = 'inheritXacmlFrom';
   $rels_uri = ISLANDORA_RELS_EXT_URI;
 
