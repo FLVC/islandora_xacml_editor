@@ -14,6 +14,7 @@ This module requires the following modules/libraries:
 
 * [Islandora](https://github.com/islandora/islandora)
 * [Tuque](https://github.com/islandora/tuque)
+* [Islandora XACML API](https://github.com/Islandora/islandora_xacml_editor/tree/7.x/api)
 
 ## Installation
 
@@ -23,7 +24,7 @@ Install as usual, see [this](https://drupal.org/documentation/install/modules-th
 
 ### Fedora Configuration
 
-It may be desirable--and in fact necessary for some modules--to disable/remove ene of the default XACML policies which denies any interactions with the POLICY datastream to users without the "administrator" role.
+It may be desirable--and in fact necessary for some modules--to disable/remove one of the default XACML policies which denies any interactions with the POLICY datastream to users without the "administrator" role.
 
 This policy is located here:
 `$FEDORA_HOME/data/fedora-xacml-policies/repository-policies/default/deny-policy-management-if-not-administrator.xml`
@@ -32,11 +33,17 @@ This policy is located here:
 
 In order to comply with XACML restrictions placed on objects, a hook is used to filter results that do not conform to a searching user's roles and name. This hook will not function correctly if the Solr fields for `ViewableByUser` and `ViewableByRole` are not defined correctly as they are set in the XSLT. These values can be set through the admin page for the module.
 
+![image](https://cloud.githubusercontent.com/assets/2371345/9816201/d7e9a1e6-5871-11e5-90a0-51381eaf8fcb.png)
+
 ### Notes
 
 The XACML editor hooks into ingesting through the interface. When a child is added through the interface, the parent's POLICY will be applied if one exists.
 
 If XACML policies are written or edited by hand, it may result in unexpected behaviour.
+
+## Documentation
+
+Further documentation for this module is available at [our wiki](https://wiki.duraspace.org/display/ISLANDORA/XACML+Editor).
 
 ## Troubleshooting/Issues
 
@@ -53,7 +60,7 @@ Current maintainers:
 
 ## Development
 
-If you would like to contribute to this module, please check out our helpful [Documentation for Developers](https://github.com/Islandora/islandora/wiki#wiki-documentation-for-developers) info, as well as our [Developers](http://islandora.ca/developers) section on the Islandora.ca site.
+If you would like to contribute to this module, please check out [CONTRIBUTING.md](CONTRIBUTING.md). In addition, we have helpful [Documentation for Developers](https://github.com/Islandora/islandora/wiki#wiki-documentation-for-developers) info, as well as our [Developers](http://islandora.ca/developers) section on the [Islandora.ca](http://islandora.ca) site.
 
 ## License
 

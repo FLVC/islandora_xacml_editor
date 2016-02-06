@@ -58,6 +58,18 @@ function islandora_xacml_editor_form($form, &$form_state, $object) {
     // Some basic error handling.
     try {
       $xacml = new Xacml($object['POLICY']->content);
+
+      if ($xacml->managementRule->isPopulated() && !$xacml->managementRule->validateDefaultMethods()) {
+        drupal_set_message(t('The management XACML policy is not valid.'), 'error');
+      }
+
+      if ($xacml->viewingRule->isPopulated() && !$xacml->viewingRule->validateDefaultMethods()) {
+        drupal_set_message(t('The viewing XACML policy is not valid.'), 'error');
+      }
+
+      if ($xacml->datastreamRule->isPopulated() && !$xacml->datastreamRule->validateDefaultMethods()) {
+        drupal_set_message(t('The datastream XACML policy is not valid.'), 'error');
+      }
     }
     catch (XacmlException $e) {
       watchdog('islandora_xacml_editor', 'Exception in Islandora Xacml: @message', array('@message', $e->getMessage()), array(), WATCHDOG_ERROR);
@@ -221,6 +233,19 @@ function islandora_xacml_editor_form($form, &$form_state, $object) {
     if (isset($form_state['islandora_xacml']['child_option'])) {
       $form['update_options']['#value'] = $form_state['islandora_xacml']['child_option'];
     }
+
+    $form['update_options_warning'] = array(
+      '#type' => 'container',
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="update_options"]' => array('value' => 'newchildren'),
+        ),
+      ),
+      'markup' => array(
+        '#markup' => t('<strong>Warning:</strong> Overriding existing policies can break the expected behavoir of other modules which rely on full control of an objects POLICY. If any children have embargoes set by <em>Islandora Scholar Embargo</em> they will be lost when this action is committed.'),
+      ),
+    );
+
   }
   $form['dsid_mime']['users'] = array(
     '#type' => 'select',
@@ -774,6 +799,7 @@ function islandora_xacml_editor_form($form, &$form_state, $object) {
     $form['dsid_mime']['dsid_regex'] = array(
       '#type' => 'textfield',
       '#title' => t('DSID Regex'),
+      '#description' => l(t('XML regex'), 'http://www.w3.org/TR/xmlschema-0/#regexAppendix'),
       '#size' => 35,
       '#prefix' => '<div class="islandora_xacml_block">',
       '#name' => 'dsid_regex_add_textfield',
@@ -827,6 +853,7 @@ function islandora_xacml_editor_form($form, &$form_state, $object) {
     $form['dsid_mime']['mime_regex'] = array(
       '#type' => 'textfield',
       '#title' => t('MIME type Regex'),
+      '#description' => l(t('XML regex'), 'http://www.w3.org/TR/xmlschema-0/#regexAppendix'),
       '#size' => 35,
       '#prefix' => '<div class="islandora_xacml_block">',
       '#name' => 'mime_regex_add_textfield',
@@ -1060,6 +1087,7 @@ function islandora_xacml_editor_form_submit(&$form, &$form_state) {
 
   $xacml->writeBackToFedora();
 
+  $form_state['redirect'] = array('islandora/object/' . $pid);
   if (isset($form_state['islandora_xacml']['query_choices']) && $form_state['values']['update_options'] != 'newchildren') {
     $option = $form_state['values']['update_options'];
     $query_array = $form_state['islandora_xacml']['query_choices'][$option];
@@ -1080,7 +1108,6 @@ function islandora_xacml_editor_form_submit(&$form, &$form_state) {
   }
   else {
     unset($form_state['islandora_xacml']);
-    $form_state['redirect'] = array('islandora/object/' . $pid);
     drupal_set_message(t('The configured POLICY datastream has been applied to @pid!', array(
       '@pid' => $pid,
     )));
